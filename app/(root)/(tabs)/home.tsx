@@ -5,20 +5,15 @@ import {
   TouchableOpacity,
   FlatList,
   Pressable,
+  RefreshControl,
 } from "react-native";
-import React, { memo, useState } from "react";
+import React, { memo, useCallback, useState } from "react";
 import { Image } from "expo-image";
 import { SafeArea } from "@/components/CustomSafeArea";
 import tw, { style } from "twrnc";
 import icons from "@/assets/icons/icons";
 import ShipmentItem from "@/components/Shipment";
 import Modal from "react-native-modal";
-
-interface FilterModalProps {
-  // isVisible: boolean;
-  // toggleModal: () => void;
-  onApplyFilter: (status: any) => void;
-}
 
 const DATA = [
   {
@@ -68,7 +63,8 @@ const home = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
   const [filterStatus, setFilterStatus] = useState("All");
-
+  const [data, setData] = useState(DATA);
+  const [refreshing, setRefreshing] = useState(false);
   const allSelected = checkedItems.length === DATA.length;
   // const filteredData = DATA.filter(
   //   (item) =>
@@ -92,10 +88,6 @@ const home = () => {
   const statuses = ["All", "RECEIVED", "IN TRANSIT", "DELIVERED"];
   const [selectedStatus, setSelectedStatus] = useState("All");
 
-  // const applyFilter = () => {
-  //   onApplyFilter(selectedStatus);
-  //   toggleModal();
-  // };
   const toggleCheckboxes = (id: string) => {
     if (checkedItems.includes(id)) {
       setCheckedItems((prev) => prev.filter((checkedId) => checkedId !== id));
@@ -130,6 +122,15 @@ const home = () => {
   const toggleModal = () => {
     setModalVisible(!isModalVisible);
   };
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+
+    setTimeout(() => {
+      setData(DATA);
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   return (
     <SafeArea barStyle="dark" viewStyle={tw`flex-1 px-5`}>
@@ -218,6 +219,8 @@ const home = () => {
             data={filteredData}
             renderItem={renderItem}
             keyExtractor={(item) => item.id}
+            refreshing={refreshing}
+            onRefresh={onRefresh}
           />
         </View>
         <Modal
